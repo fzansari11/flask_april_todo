@@ -41,7 +41,7 @@ def upload_to_s3(file_path, s3_key):
     try:
         s3.upload_file(file_path, BUCKET_NAME, s3_key)
         # Set the file to be publicly readable
-        s3.put_object_acl(ACL='public-read', Bucket=BUCKET_NAME, Key=s3_key)
+        #s3.put_object_acl(ACL='public-read', Bucket=BUCKET_NAME, Key=s3_key)
         logging.info(f"File {file_path} uploaded to S3 bucket {BUCKET_NAME} with key {s3_key}")
         return f"https://{BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
     except Exception as e:
