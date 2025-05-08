@@ -1,6 +1,10 @@
 from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 import os
+import boto3
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
@@ -10,6 +14,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:CloudBerry123@my-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+BUCKET_NAME = 'flask-todo-april-bucket'
+
+def upload_to_s3(file_path, s3_key):
+    s3 = boto3.client('s3')
+    try:
+        s3.upload_file(file_path, BUCKET_NAME, s3_key)
+        logging.info(f"File {file_path} uploaded to S3 bucket {BUCKET_NAME} with key {s3_key}")
+    except Exception as e:
+        logging.error(f"Error uploading file to S3: {e}")
+
 
 class Task(db.Model):
     __tablename__ = 'tasks'
@@ -25,6 +39,12 @@ def home():
 @app.route('/add', methods= ['POST'])
 def add_task():
     task = request.form.get('task')
+    file = request.files.get('file')
+    if file:
+        file_path = os.path.join(basedir, file.filename)
+        file.save(file_path)
+        upload_to_s3(file_path, file.filename)
+        os.remove(file_path)
     new_task = Task(title=task)
     db.session.add(new_task)
     db.session.commit()
