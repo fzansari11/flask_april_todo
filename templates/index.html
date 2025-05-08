@@ -5,7 +5,7 @@
 </head>
 <body>
     <h1>My To-Do List</h1>
-    <form action="/add" method="post">
+    <form action="/add" method="post" enctype="multipart/form-data">
         <input type="text" name="task" placeholder="Enter a task" required>
         <input type="file" name="file">
         <button type="submit">Add Task</button>
@@ -17,6 +17,9 @@
                 <a href="/delete/{{ task.id }}">❌</a>
                 <a href="/complete/{{ task.id }}">✅</a>
                 <a href="/edit/{{ task.id }}">✏️</a>
+                {% if task.s3_url %}
+                    <a href="{{ task.s3_url }}" target="_blank">View Attachment</a>
+                {% endif %}
             </li>
         {% endfor %}
     </ul>

@@ -41,8 +41,10 @@ def upload_to_s3(file_path, s3_key):
     try:
         s3.upload_file(file_path, BUCKET_NAME, s3_key)
         logging.info(f"File {file_path} uploaded to S3 bucket {BUCKET_NAME} with key {s3_key}")
+        return f"https://{BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
     except Exception as e:
         logging.error(f"Error uploading file to S3: {e}")
+        return None
 
 
 class Task(db.Model):
@@ -50,6 +52,7 @@ class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String(100), nullable=False)
     completed = db.Column(db.Boolean, default=False)
+    s3_url = db.Column(db.String(200), nullable=True)
 
 @app.route('/')
 def home():
@@ -59,17 +62,25 @@ def home():
 @app.route('/add', methods= ['POST'])
 def add_task():
     task = request.form.get('task')
-    file = request.files.get('file')
+    try:
+        file = request.files.get('file')
+    except Exception as e:
+        logging.error(f"Error retrieving file: {e}")
+        file = None
+    
+    new_task = Task(title=task)
     if file:
         # Save the file locally and then upload to S3
         logging.info(f"Received file: {file.filename}")
         file_path = os.path.join(basedir, file.filename)
         file.save(file_path)
-        upload_to_s3(file_path, file.filename)
+        s3_url =  upload_to_s3(file_path, file.filename)
         os.remove(file_path)
+        new_task.s3_url = s3_url
+        logging.info(f"File uploaded to S3: {s3_url}")
     else:
         logging.info("No file received")
-    new_task = Task(title=task)
+  
     db.session.add(new_task)
     db.session.commit()
     return redirect('/')
