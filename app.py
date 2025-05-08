@@ -5,7 +5,8 @@ import os
 app = Flask(__name__)
 
 basedir = os.path.abspath(os.path.dirname(__file__)) # Get the directory of the current file
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db') 
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db') 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:CloudBerry123@my-db-instance.cjs8gi8umiqq.us-east-2.rds.amazonaws.com/mydb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -56,4 +57,4 @@ def edit_task(task_id):
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(host='0.0.0.0',debug=True)
