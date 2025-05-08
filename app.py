@@ -2,15 +2,35 @@ from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 import os
 import boto3
+import json
 import logging
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    filename = 'app.log',
+    level=logging.INFO)
 
 app = Flask(__name__)
+db_user = os.environ.get('DB_USER')
+db_pass = os.environ.get('DB_PASS')
+db_host = os.environ.get('DB_HOST')
+db_name = os.environ.get('DB_NAME')
+
+def get_db_secret(secret_name, region_name='us-east-2'):
+    client = boto3.client('secretsmanager', region_name=region_name)
+    get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)
+
+# Fetch credentials from Secrets Manager
+secret = get_db_secret('prod/rds/mydb')
+
+
 
 basedir = os.path.abspath(os.path.dirname(__file__)) # Get the directory of the current file
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db') 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:CloudBerry123@my-db-instance.cjs8gi8umiqq.us-east-2.rds.amazonaws.com/mydb'
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{secret['username']}:{secret['password']}@{secret['host']}/{secret['dbname']}"
+#app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{db_user}:{db_pass}@{db_host}/{db_name}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -41,10 +61,14 @@ def add_task():
     task = request.form.get('task')
     file = request.files.get('file')
     if file:
+        # Save the file locally and then upload to S3
+        logging.info(f"Received file: {file.filename}")
         file_path = os.path.join(basedir, file.filename)
         file.save(file_path)
         upload_to_s3(file_path, file.filename)
         os.remove(file_path)
+    else:
+        logging.info("No file received")
     new_task = Task(title=task)
     db.session.add(new_task)
     db.session.commit()
