@@ -25,12 +25,8 @@ def get_db_secret(secret_name, region_name='us-east-2'):
 # Fetch credentials from Secrets Manager
 secret = get_db_secret('prod/rds/mydb')
 
-
-
 basedir = os.path.abspath(os.path.dirname(__file__)) # Get the directory of the current file
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'database.db') 
 app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{secret['username']}:{secret['password']}@{secret['host']}/{secret['dbname']}"
-#app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{db_user}:{db_pass}@{db_host}/{db_name}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -41,7 +37,6 @@ def upload_to_s3(file_path, s3_key):
     try:
         s3.upload_file(file_path, BUCKET_NAME, s3_key)
         # Set the file to be publicly readable
-        #s3.put_object_acl(ACL='public-read', Bucket=BUCKET_NAME, Key=s3_key)
         logging.info(f"File {file_path} uploaded to S3 bucket {BUCKET_NAME} with key {s3_key}")
         return f"https://{BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
     except Exception as e:
