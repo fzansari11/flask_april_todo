@@ -72,8 +72,6 @@ def add_task():
     
     new_task = Task(title=task)
     if file:
-        # Save the file locally and then upload to S3
-        logging.info(f"Received file: {file.filename}")
         file_path = os.path.join(basedir, file.filename)
         file.save(file_path)
         s3_url =  upload_to_s3(file_path, file.filename)
