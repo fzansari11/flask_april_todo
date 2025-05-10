@@ -39,5 +39,5 @@ jobs:
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-          deactivate
-          echo ${{ secrets.EC2_PASS }} | sudo -S systemctl restart gunicorn
+          pkill gunicorn || true
+          nohup venv/bin/gunicorn --bind 0.0.0.0:8000 wsgi:app &
