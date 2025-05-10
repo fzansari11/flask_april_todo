@@ -40,4 +40,4 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
           deactivate
-          echo $EC2_PASS | sudo -S systemctl restart gunicorn
+          echo ${{ secrets.EC2_PASS }} | sudo -S systemctl restart gunicorn
