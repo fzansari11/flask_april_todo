@@ -36,4 +36,4 @@ jobs:
         script: |
           cd /home/fzansari/flask_april_todo
           pip3 install -r requirements.txt
-          sudo systemctl restart gunicorn
+          sudo systemctl restart gunicorn <<< $EC2_PASS
