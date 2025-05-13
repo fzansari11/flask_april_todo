@@ -1,4 +1,4 @@
-name: Deploy Flask To-Do App to EC2
+name: Deploy Flask To-Do App to EC2 instance
 
 on:
   push:
