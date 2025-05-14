@@ -4,6 +4,7 @@ import os
 import boto3
 import json
 import logging
+import requests
 
 logging.basicConfig(
     filename = 'app.log',
@@ -83,7 +84,7 @@ def add_task():
     db.session.commit()
     # Call the Lambda function
     try:
-        response = request.post(LAMBDA_ENDPOINT, json={
+        response = requests.post(LAMBDA_ENDPOINT, json={
             'task': task,
         })
         logging.info(f"Lambda function response: {response.text}")
