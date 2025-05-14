@@ -83,7 +83,7 @@ def add_task():
     db.session.commit()
     # Call the Lambda function
     try:
-        response = requests.post(LAMBDA_ENDPOINT, json={
+        response = request.post(LAMBDA_ENDPOINT, json={
             'task': task,
         })
         logging.info(f"Lambda function response: {response.text}")
