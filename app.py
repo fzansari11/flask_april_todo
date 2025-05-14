@@ -15,6 +15,8 @@ db_pass = os.environ.get('DB_PASS')
 db_host = os.environ.get('DB_HOST')
 db_name = os.environ.get('DB_NAME')
 
+LAMBDA_ENDPOINT = 'https://hfvco24x7b.execute-api.us-east-2.amazonaws.com/default/logTaskLambda'
+
 # Set up AWS credentials
 def get_db_secret(secret_name, region_name='us-east-2'):
     client = boto3.client('secretsmanager', region_name=region_name)
@@ -79,6 +81,15 @@ def add_task():
   
     db.session.add(new_task)
     db.session.commit()
+    # Call the Lambda function
+    try:
+        response = requests.post(LAMBDA_ENDPOINT, json={
+            'task': task,
+        })
+        logging.info(f"Lambda function response: {response.text}")
+    except Exception as e:
+        logging.error(f"Error calling Lambda function: {e}")
+
     return redirect('/')
 
 @app.route('/delete/<int:task_id>')
